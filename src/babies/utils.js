@@ -148,7 +148,7 @@ const secondToDate = (seconds) => {
     return days === 1 ? "1 day" : days + " days";
   } else {
     const hours = parseInt(new BigNumber(seconds / 3600).dp(0, 0).toNumber());
-    
+
     if (hours !== 0) {
       return hours === 1 ? "1 hour" : hours + " hours";
     } else {

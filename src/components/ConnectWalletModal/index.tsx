@@ -198,7 +198,6 @@ const ConnectWalletModal = (props: any) => {
               align="left"
               fontSize="26"
             >
-              {" "}
               Connect Wallet
             </Text>
           </ModalHeader>

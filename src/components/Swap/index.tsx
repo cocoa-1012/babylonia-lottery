@@ -160,8 +160,8 @@ const SwapBox = () => {
     switch (chainId) {
       // case 4:
       //   return config.contractAddress.presale[4];
-      case 56:
-        return config.contractAddress.ICO1M1[56];
+      // case 56:
+      //   return config.contractAddress.presale[56];
       // case 97:
       //   return config.contractAddress.presale[97];
       // case 80001:
@@ -178,7 +178,7 @@ const SwapBox = () => {
 
   const IPresaleContractAddress = new web3.eth.Contract(
     presaleContractJSON.abi as any,
-    getICOContractAddress()
+    // getICOContractAddress()
   );
 
   const tokenContract = {

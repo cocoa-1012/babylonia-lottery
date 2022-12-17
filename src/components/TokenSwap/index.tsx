@@ -44,7 +44,6 @@ import { useEthers } from "@usedapp/core";
 import { useToast } from "@chakra-ui/react";
 import { RepeatIcon, ChevronDownIcon } from "@chakra-ui/icons";
 
-
 // importing ABI
 import busdJSON from "../../babies/abis/BUSDToken.json";
 import usdtJSON from "../../babies/abis/USDTToken.json";
@@ -59,8 +58,13 @@ import ConnectButton from "../ConnectButton/index";
 import { default as chains } from "@config/chains.json";
 import { walletActions } from "@store/walletSlice";
 import ConnectWalletModal from "@components/ConnectWalletModal";
-import { getPresaleContract, getTokenContract } from './helpers'
-import { checkAllowanceSwapToken, getSwapTokenBalance, getBABYBalance, getDepositRate } from "./helpers/dataFetcher";
+import { getPresaleContract, getTokenContract } from "./helpers";
+import {
+  checkAllowanceSwapToken,
+  getSwapTokenBalance,
+  getBABYBalance,
+  getDepositRate,
+} from "./helpers/dataFetcher";
 import { ApproveSwapToken, Depositusd } from "./helpers/dataSender";
 import Tablist from "./components/TabList";
 
@@ -86,12 +90,16 @@ function TokenSwap(props: any) {
   const bgColor = useColorModeValue("white", "#1B1F3A");
   const bgBoxColor = useColorModeValue("#E2E2E2", "gray.600");
 
-  const walletAddress = useAppSelector((state: any) => state.wallet.walletAddress);
-  const selectedWallet = useAppSelector((state: any) => state.wallet.selectedWallet);
+  const walletAddress = useAppSelector(
+    (state: any) => state.wallet.walletAddress
+  );
+  const selectedWallet = useAppSelector(
+    (state: any) => state.wallet.selectedWallet
+  );
 
   let web3 = new Web3();
   if (typeof window !== "undefined") {
-    web3 = new Web3(window.ethereum)
+    web3 = new Web3(window.ethereum);
   }
 
   const toast = useToast();
@@ -106,7 +114,6 @@ function TokenSwap(props: any) {
   const [swapTokenBalance, setSwapTokenBalance] = useState("0");
   const [presaleRate, setPresaleRate] = useState(web3.utils.toBN(100));
   const [toggleSwap, setToggleSwap] = useState(false);
-
 
   const dispatch = useAppDispatch();
 
@@ -124,16 +131,14 @@ function TokenSwap(props: any) {
         abi: busdJSON as any,
         babyIcon: BnbBabyToken,
       });
-    }
-    else if (chainId === 250) {
+    } else if (chainId === 250) {
       setSwapToken({
         icon: DAITokenIcon,
         label: "DAI",
         abi: DAIJSON as any,
         babyIcon: fantomBabyToken,
-      });      
-    }
-    else if (chainId === 137) {
+      });
+    } else if (chainId === 137) {
       setSwapToken({
         icon: USDTTokenIcon,
         label: "USDT",
@@ -154,12 +159,12 @@ function TokenSwap(props: any) {
 
   const presaleContract = getPresaleContract(chainId, web3);
 
-
-
   useEffect(() => {
     if (selectedWallet === "MetaMask" || selectedWallet === "TrustWallet") {
       // if (account !== undefined || walletAddress !== undefined) {
       const chain = chains.find((c: any) => c.chainId === chainId);
+      console.log("chain", chain);
+
       setSelectedNetwork(String(chain && chain.chain), Number(chainId));
       if (chainId !== null) {
         setNative();
@@ -170,13 +175,11 @@ function TokenSwap(props: any) {
         setSwapTokenBalance("0");
       }
       // }
-    } else
-      if (selectedWallet === "Solana") {
-        if (solana.network === "solana") {
-        }
+    } else if (selectedWallet === "Solana") {
+      if (solana.network === "solana") {
       }
+    }
   }, [selectedWallet]);
-
 
   useEffect(() => {
     if (account !== undefined || walletAddress !== undefined) {
@@ -210,13 +213,24 @@ function TokenSwap(props: any) {
     }
   }, [swapToken]);
 
-
   const getRates = async () => {
-    if ((selectedWallet !== "") && (walletAddress !== "")) {
-      const swaptokenbalance = await getSwapTokenBalance(account ? account : "", swapToken, chainId);
+    if (selectedWallet !== "" && walletAddress !== "") {
+      const swaptokenbalance = await getSwapTokenBalance(
+        account ? account : "",
+        swapToken,
+        chainId
+      );
       setSwapTokenBalance(swaptokenbalance + "");
-      const babybalance = await getBABYBalance(account ? account : "", tokenContract, web3);
-      const depositRate = await getDepositRate(account ? account : "", presaleContract, web3);
+      const babybalance = await getBABYBalance(
+        account ? account : "",
+        tokenContract,
+        web3
+      );
+      const depositRate = await getDepositRate(
+        account ? account : "",
+        presaleContract,
+        web3
+      );
       setBabyBalance(web3.utils.fromWei(babybalance));
       setPresaleRate(depositRate);
     }
@@ -238,14 +252,25 @@ function TokenSwap(props: any) {
     }
   };
 
-
   const loadUserDetail = async () => {
-    const tokenAllowrance = await checkAllowanceSwapToken(account, web3, presaleContract.address, swapToken, chainId);
+    const tokenAllowrance = await checkAllowanceSwapToken(
+      account,
+      web3,
+      presaleContract.address,
+      swapToken,
+      chainId
+    );
     setSwapTokenAllowrance(tokenAllowrance);
   };
 
   const approveTokens = async () => {
-    await ApproveSwapToken(account, presaleContract.address, web3, swapToken, chainId).then((o: any) => {
+    await ApproveSwapToken(
+      account,
+      presaleContract.address,
+      web3,
+      swapToken,
+      chainId
+    ).then((o: any) => {
       loadUserDetail();
       toast({
         title: "Successfully approved.",
@@ -259,7 +284,7 @@ function TokenSwap(props: any) {
   };
 
   const Buy = async () => {
-    let amount: any = (`${tokenValue}`);
+    let amount: any = `${tokenValue}`;
     let walletAddress = account;
     if (amount > Number(swapTokenBalance)) {
       toast({
@@ -285,7 +310,14 @@ function TokenSwap(props: any) {
     if (chainId == 250) {
       if (symbol === "USDC") amountToSend = web3.utils.toWei(amount, "Mwei");
     }
-    const result = await Depositusd(walletAddress, amountToSend, swapToken, chainId, web3, presaleContract);
+    const result = await Depositusd(
+      walletAddress,
+      amountToSend,
+      swapToken,
+      chainId,
+      web3,
+      presaleContract
+    );
     if (result) {
       toast({
         title: "Thanks for purchasing.",
@@ -302,19 +334,19 @@ function TokenSwap(props: any) {
   const setSelectedNetwork = (network: string, chainId: number) => {
     dispatch(walletActions.setTokenList([]));
     dispatch(walletActions.setSelectedNetwork(network));
-  }
+  };
 
   const swapToggleFunc = async () => {
     setToggleSwap(!toggleSwap);
   };
 
   const solana = useAppSelector((state: any) => state.solana);
-  
+
   return (
     <>
       <Tabs
         className={grayscaleMode === "gray" ? "grayscale" : ""}
-        variant='unstyled'
+        variant="unstyled"
         colorScheme="green"
         // {...props}
         m="0px"
@@ -325,10 +357,8 @@ function TokenSwap(props: any) {
         fontFamily={"Ropa sans"}
       >
         <Box display={["block", "block", "none", "none"]}>
-          <Flex justifyContent={'center'} mb={4}>
-            <ConnectButton
-              mt="15px"
-            />
+          <Flex justifyContent={"center"} mb={4}>
+            <ConnectButton mt="15px" />
           </Flex>
         </Box>
         <Tablist />
@@ -389,7 +419,9 @@ function TokenSwap(props: any) {
                         width={"120px"}
                         height={"45px"}
                       />
-                      <Text fontSize={["20px", "20px", "24px", "24px"]}>METHOD #1</Text>
+                      <Text fontSize={["20px", "20px", "24px", "24px"]}>
+                        METHOD #1
+                      </Text>
                     </Box>
 
                     <Box ml={"65px"} mt={"30px"}>
@@ -491,7 +523,11 @@ function TokenSwap(props: any) {
                           pr="4.5rem"
                           type={"number"}
                           value={tokenValue}
-                          max={typeof swapTokenBalance !== "undefined" ? parseFloat(swapTokenBalance) : "0"}
+                          max={
+                            typeof swapTokenBalance !== "undefined"
+                              ? parseFloat(swapTokenBalance)
+                              : "0"
+                          }
                           onKeyPress={(e) => {
                             parseFloat(tokenValue) >= 99999999.9999
                               ? e.preventDefault()
@@ -502,7 +538,8 @@ function TokenSwap(props: any) {
                             setTokenValue(e.target.value);
                             setBabyValue(
                               (
-                                parseFloat(e.target.value) * parseFloat(presaleRate.toString())
+                                parseFloat(e.target.value) *
+                                parseFloat(presaleRate.toString())
                               ).toString()
                             );
                           }}
@@ -516,12 +553,15 @@ function TokenSwap(props: any) {
                             style={{ height: "35px" }}
                             onClick={() => {
                               if (Number(swapTokenBalance) > 0.001)
-                                setTokenValue((Number(swapTokenBalance)).toString());
+                                setTokenValue(
+                                  Number(swapTokenBalance).toString()
+                                );
                               computeGasFee();
                               // console.log("88888888888 ", (swapTokenBalance), ",", presaleRate.toString())
                               setBabyValue(
                                 (
-                                  parseFloat(swapTokenBalance) * parseFloat(presaleRate.toString())
+                                  parseFloat(swapTokenBalance) *
+                                  parseFloat(presaleRate.toString())
                                 ).toString()
                               );
                             }}
@@ -596,12 +636,11 @@ function TokenSwap(props: any) {
                                 : null;
                             }}
                             max={
-                              (
-                                typeof presaleRate != "undefined" &&
-                                typeof swapTokenBalance !== "undefined" &&
-                                !isNaN(parseFloat(presaleRate.toString()))
-                              )
-                                ? (parseFloat(presaleRate.toString()) * parseFloat(swapTokenBalance))
+                              typeof presaleRate != "undefined" &&
+                              typeof swapTokenBalance !== "undefined" &&
+                              !isNaN(parseFloat(presaleRate.toString()))
+                                ? parseFloat(presaleRate.toString()) *
+                                  parseFloat(swapTokenBalance)
                                 : "0" + ", " + swapTokenBalance
                             }
                             onChange={(e: any) => {
@@ -609,7 +648,10 @@ function TokenSwap(props: any) {
                                 parseFloat(e.target.value).toString()
                               );
                               setTokenValue(
-                                (parseFloat(e.target.value) / parseFloat(presaleRate.toString()))
+                                (
+                                  parseFloat(e.target.value) /
+                                  parseFloat(presaleRate.toString())
+                                )
                                   .toFixed(5)
                                   .toString()
                               );
@@ -676,8 +718,7 @@ function TokenSwap(props: any) {
                               : parseFloat("100").toFixed(2)
                             : " 100"}{" "}
                           {"  "}
-                          BABY per {" "}
-                          {swapToken.label.toUpperCase()}
+                          BABY per {swapToken.label.toUpperCase()}
                           <RepeatIcon
                             marginLeft={"10px"}
                             mt="4px"
@@ -691,60 +732,56 @@ function TokenSwap(props: any) {
                     {chainId !== null &&
                       account &&
                       selectedWallet !== "" &&
-                      (swapTokenAllowrance < web3.utils.toBN(100) ?
-                        (
-                          <Button
-                            id="approve_button"
-                            border="1px"
-                            w="55%"
-                            h="40px"
-                            mt={["", "", "25px", "25px"]}
-                            mb={["", "", "25px", "16px"]}
-                            borderRadius="5"
-                            color={colorMode === "dark" ? "gray.400" : "black"}
-                            backgroundColor={
-                              colorMode === "dark" ? "gray.800" : "white"
-                            }
-                            fontFamily="Ropa Sans"
-                            fontSize={"19px"}
-                            fontWeight="150"
-                            onClick={
-                              () => {
-                                // toast({
-                                //   title: "METHOD 1",
-                                //   description: "Method 1 is not available at the moment, try method 2",
-                                //   status: "info",
-                                //   duration: 9000,
-                                //   isClosable: true,
-                                // });
-                                approveTokens();
-                              }
-                            }
-                          >
-                            Approve
-                          </Button>
-
-                        ) : (
-                          <Button
-                            id="approve_button"
-                            border="1px"
-                            w="55%"
-                            h="40px"
-                            mt={"25px"}
-                            mb={"16px"}
-                            borderRadius="5"
-                            color={colorMode === "dark" ? "gray.400" : "black"}
-                            backgroundColor={
-                              colorMode === "dark" ? "gray.800" : "white"
-                            }
-                            fontFamily="Ropa Sans"
-                            fontSize={"19px"}
-                            fontWeight="150"
-                            onClick={Buy}
-                          >
-                            Buy
-                          </Button>
-                        ))}
+                      (swapTokenAllowrance < web3.utils.toBN(100) ? (
+                        <Button
+                          id="approve_button"
+                          border="1px"
+                          w="55%"
+                          h="40px"
+                          mt={["", "", "25px", "25px"]}
+                          mb={["", "", "25px", "16px"]}
+                          borderRadius="5"
+                          color={colorMode === "dark" ? "gray.400" : "black"}
+                          backgroundColor={
+                            colorMode === "dark" ? "gray.800" : "white"
+                          }
+                          fontFamily="Ropa Sans"
+                          fontSize={"19px"}
+                          fontWeight="150"
+                          onClick={() => {
+                            // toast({
+                            //   title: "METHOD 1",
+                            //   description: "Method 1 is not available at the moment, try method 2",
+                            //   status: "info",
+                            //   duration: 9000,
+                            //   isClosable: true,
+                            // });
+                            approveTokens();
+                          }}
+                        >
+                          Approve
+                        </Button>
+                      ) : (
+                        <Button
+                          id="approve_button"
+                          border="1px"
+                          w="55%"
+                          h="40px"
+                          mt={"25px"}
+                          mb={"16px"}
+                          borderRadius="5"
+                          color={colorMode === "dark" ? "gray.400" : "black"}
+                          backgroundColor={
+                            colorMode === "dark" ? "gray.800" : "white"
+                          }
+                          fontFamily="Ropa Sans"
+                          fontSize={"19px"}
+                          fontWeight="150"
+                          onClick={Buy}
+                        >
+                          Buy
+                        </Button>
+                      ))}
                     {!account && (
                       <Button
                         id="swap_button"
@@ -774,12 +811,11 @@ function TokenSwap(props: any) {
           {/* #2  */}
 
           <TabPanel>
-
             <Box
               bg={"bgColor"}
               display={["flex", "flex", "flex", "flex"]}
               justifyContent={"center"}
-            // alignItems="center"
+              // alignItems="center"
             >
               <Wrap
               // sx={{ display: "flex !important", justifyContent: "center" }}
@@ -816,7 +852,6 @@ function TokenSwap(props: any) {
                 </VStack>
               </Wrap>
             </Box>
-
           </TabPanel>
         </TabPanels>
       </Tabs>
@@ -881,7 +916,15 @@ function TokenSwap(props: any) {
                     className={grayscaleMode === "gray" ? "grayscale" : ""}
                     display="inline"
                   />
-                  <label style={{ cursor: "pointer", backgroundColor: colorMode === "light" ? "white" : "black" }}>BUSD</label>
+                  <label
+                    style={{
+                      cursor: "pointer",
+                      backgroundColor:
+                        colorMode === "light" ? "white" : "black",
+                    }}
+                  >
+                    BUSD
+                  </label>
                 </Box>
               )}
               {chainId === 250 ? (
@@ -917,7 +960,15 @@ function TokenSwap(props: any) {
                     objectFit="cover"
                     display="inline"
                   />
-                  <label style={{ cursor: "pointer", backgroundColor: colorMode === "light" ? "white" : "black" }}>DAI</label>
+                  <label
+                    style={{
+                      cursor: "pointer",
+                      backgroundColor:
+                        colorMode === "light" ? "white" : "black",
+                    }}
+                  >
+                    DAI
+                  </label>
                 </Box>
               ) : (
                 <Box
@@ -952,7 +1003,15 @@ function TokenSwap(props: any) {
                     objectFit="cover"
                     display="inline"
                   />
-                  <label style={{ cursor: "pointer", backgroundColor: colorMode === "light" ? "white" : "black" }}>USDT</label>
+                  <label
+                    style={{
+                      cursor: "pointer",
+                      backgroundColor:
+                        colorMode === "light" ? "white" : "black",
+                    }}
+                  >
+                    USDT
+                  </label>
                 </Box>
               )}
               <Box
@@ -983,7 +1042,14 @@ function TokenSwap(props: any) {
                   objectFit="cover"
                   display="inline"
                 />
-                <label style={{ cursor: "pointer", backgroundColor: colorMode === "light" ? "white" : "black" }}>USDC</label>
+                <label
+                  style={{
+                    cursor: "pointer",
+                    backgroundColor: colorMode === "light" ? "white" : "black",
+                  }}
+                >
+                  USDC
+                </label>
               </Box>
             </ModalBody>
           </Box>

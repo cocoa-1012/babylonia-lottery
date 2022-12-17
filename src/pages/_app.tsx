@@ -16,7 +16,8 @@ import Script from "next/script";
 import { useRouter } from "next/router";
 import * as gtag from "../lib/gtag";
 import { useEffect } from "react";
-
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 const keywords = `"chain selector", "metamask chain selector" , "metamask fantom", "metamask polygon", "metamask fantom testnet", "metamask polygon testnet", "add to metamask", "add network metamask"`;
 const og_title = "Babylonia Game on Blockchain";
 const og_description =
@@ -44,6 +45,7 @@ function MyApp({ Component, pageProps }: AppProps) {
   }, [router.events]);
   return (
     <AppStateProvider>
+      <ToastContainer />
       <ChakraProvider theme={theme}>
         <ReduxProvider store={store}>
           <DAppProvider config={config}>
@@ -70,7 +72,11 @@ function MyApp({ Component, pageProps }: AppProps) {
         `,
                   }}
                 />
-                <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+                <script
+                  src="https://www.google.com/recaptcha/api.js"
+                  async
+                  defer
+                ></script>
               </>
               <title> Pool | Babylonia.app </title>
               <link rel="shortcut icon" href="/BABY.png" />

@@ -10,6 +10,7 @@ import {
   useDisclosure,
   Input,
 } from "@chakra-ui/react";
+import Web3 from "web3";
 
 // import { TokenAbI, TokenAddress } from "../Utils/token";
 // import { BabyAbI, BabyAddress } from "../Utils/baby";
@@ -23,7 +24,10 @@ import styled from "styled-components";
 import { AiOutlineDown, AiOutlineInfoCircle } from "react-icons/ai";
 import { useEthers } from "@usedapp/core";
 import DisconnectedWalet from "@components/TokenList/DisconnectedWalet";
-
+import { toast } from "react-toastify";
+import tokenJSON from "../../babies/abis/BABYToken2.json";
+import lotteryJSON from "../../babies/abis/Lottery.json";
+import config from "@config/index";
 function BuyPointOne(props) {
   // const [open, setOpen] = useState(false);
   // const textTitleColor = useColorModeValue("black", "gray.100");
@@ -266,16 +270,93 @@ function BuyPointOne(props) {
   // useEffect(() => {
   //   document.getElementById("input").focus();
   // });
+  const { chainId, account } = useEthers();
+  const [Id, setId] = useState(chainId);
+  const getBabyAddress = () => {
+    if (Id === 80001) {
+      return config.contractAddress.babyToken[80001];
+    } else if (Id === 137) {
+      return config.contractAddress.babyToken[137];
+    }
+  };
+  const getLotteryAddress = () => {
+    if (Id === 80001) {
+      return config.contractAddress.lottery[80001];
+    } else if (Id === 137) {
+      return config.contractAddress.lottery[137];
+    }
+    else if (Id === 97) {
+      return config.contractAddress.lottery[97];
+    }
+  };
+  let web3 = new Web3();
+  if (typeof window !== "undefined") {
+    web3 = new Web3(window.ethereum);
+  }
+
+  const ITokenContract = new web3.eth.Contract(tokenJSON.abi, getBabyAddress());
+  const ILotteryContract = new web3.eth.Contract(
+    lotteryJSON.abi,
+    getLotteryAddress()
+  );
+  const tokenContract = {
+    address: getBabyAddress(),
+    abi: tokenJSON.abi,
+    contract: ITokenContract,
+    decimals: 18,
+  };
+  const lotteryContract = {
+    address: getLotteryAddress(),
+    abi: lotteryJSON.abi,
+    contract: ILotteryContract,
+    decimals: 18,
+  };
   const [number, setNumber] = useState(123312);
-  const { account } = useEthers();
   const grayscaleMode = useAppSelector((state) => state.grayscale.value);
   const { colorMode } = useColorMode();
+  const [lotteryNumber, setLotteryNumbers] = useState(props?.eidtLotteryNumber);
 
+  const getBuyTicket = async () => {
+    try {
+      if (account == "No Wallet") {
+        toast.info("Not Connected");
+      } else if (account == "Wrong Network") {
+        toast.info("Not Connected");
+      } else if (account == "Connect Wallet") {
+        toast.info("Not Connected");
+      } else {
+        const id = await lotteryContract.contract.methods
+          .viewCurrentLotteryId()
+          .call();
+        console.log("viewCurrentLotteryId in edit and buy", id);
+        let array = [];
+        array = lotteryNumber;
+        console.log("array", array);
+        const result = await lotteryContract.contract.methods
+          .buyTickets(id, array)
+          .send({ from: account });
+        toast.success("Transaction Sucessful");
+      }
+    } catch (error) {
+      toast.error("Transaction Failed");
+      console.log("error while getting baby balance", error);
+    }
+  };
+  const handleChangeLotteryNumber = (e, targetIndex) => {
+    let newArray = lotteryNumber.map((item, index) => {
+      if (index == targetIndex) {
+        return Number((item = e.target.value));
+      } else {
+        return item;
+      }
+    });
+    setLotteryNumbers(newArray);
+  };
   return (
     <Stack justifyContent="center" alignItems="center">
       <Box
         {...props}
-        w={["100vw", "90vw", "360px"]}
+        w={["100vw", "90vw", "320px"]}
         borderRadius="10px"
         // whiteSpace="nowrap"
         bg={colorMode === "dark" ? "black" : "white"}
@@ -311,17 +392,17 @@ function BuyPointOne(props) {
               style={{
                 backgroundColor: "white",
                 padding: "1px",
-
-                fontSize: "25px",
+                borderRadius: "2px",
+                fontSize: "20px",
                 cursor: "pointer",
               }}
               onClick={props.onClose}
             />
           </div>
           <Text
-            fontSize={"lg"}
+            fontSize={"2xl"}
             pl="6px"
-            textAlign={"center"}
+            textAlign={"left"}
             color={colorMode === "dark" ? "#C5C5C5" : ""}
           >
             Edit Numbers
@@ -329,7 +410,7 @@ function BuyPointOne(props) {
           <MainContainer>
             <ColumnContainer>
               <Text fontSize={"lg"} style={{ display: "flex" }} mb="3px">
-                Total cost: <Text fontWeight={"black"}> 1.11 BABY</Text>
+                Total cost: &nbsp;<Text fontWeight={"black"}> 1.11 BABY</Text>
               </Text>
               <Text>
                 Buy Instantly, chooses random numbers, with no duplicates among
@@ -337,19 +418,32 @@ function BuyPointOne(props) {
                 $5 at that time. Purchases are final.
               </Text>
               <NumberContainer>
-                {[1, 2, 3, 4, 5, 6, 1, 2, 4, 1].map((item) => (
-                  <Input
-                    key={item}
-                    type="number"
-                    id="input"
-                    placeholder="123456"
-                    className="input"
-                  />
-                ))}
+                {lotteryNumber &&
+                  lotteryNumber.map((item, index) => (
+                    <input
+                      key={index}
+                      type="text"
+                      pattern="\d*"
+                      maxLength={7}
+                      // id="input"
+                      placeholder="123456"
+                      className="input"
+                      value={item}
+                      onChange={(item) => {
+                        handleChangeLotteryNumber(item, index);
+                      }}
+                    />
+                  ))}
               </NumberContainer>
             </ColumnContainer>
             <ButtonContainer>
-              <button>Confirm & Buy</button>
+              <button
+                onClick={() => {
+                  getBuyTicket();
+                }}
+              >
+                Confirm & Buy
+              </button>
             </ButtonContainer>
           </MainContainer>
         </Box>
@@ -400,22 +494,22 @@ const ColumnContainer = styled.div`
 const NumberContainer = styled.div`
   display: flex;
   flex-direction: column;
-  justify-content: center;
   align-items: flex-start;
   margin: 10px 0;
   width: 100%;
-  max-height: 150px;
+  max-height: 170px;
   overflow-y: scroll;
   scroll-snap-type: proximity;
-  background-color: #eee;
-  border-radius: 10px;
   .input {
-    width: 150px;
-
+    width: 230px;
+    height: 30px;
     align-self: center;
-    margin: 5px;
+    margin-bottom: 10px;
+    padding-left: 15px;
     font-size: 1.2rem;
-    border: #333 1px solid;
+    border: #000 1px solid;
+    letter-spacing: 20px;
+    box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
   }
 `;
 const ButtonContainer = styled.div`
@@ -425,7 +519,7 @@ const ButtonContainer = styled.div`
   background: #ffffff;
   border: 2px solid #000000;
   border-radius: 5px;
-  margin: 5px 40px 5px 40px;
+  margin: 15px 40px 30px 40px;
   width: 100%;
 
   text-align: center;
