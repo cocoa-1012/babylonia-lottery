@@ -130,12 +130,15 @@ const JackpotComponent = (props: any) => {
     return randomNumber;
   };
   const getBalance = async (address: string) => {
+    console.log("Babybalance Func:", address)
     try {
       const result = await tokenContract.contract.methods
         .balanceOf(address)
         .call();
       return web3.utils.toBN(result).toString();
-    } catch (error) {}
+    } catch (error) {
+      console.log("Babybal Erro:", error)
+    }
   };
   const getCost = async () => {
     try {
@@ -199,6 +202,7 @@ const JackpotComponent = (props: any) => {
     try {
       if (account) {
         const babybalance = await getBalance(account ? account : "");
+        console.log("Babybalance::>", babybalance)
         // const depositRate: any = await getDepositRate();
         let test: string = babybalance!;
         setBabyBalance(web3.utils.fromWei(test as string));

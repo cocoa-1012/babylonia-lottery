@@ -22,6 +22,7 @@ import { useEthers } from "@usedapp/core";
 import JackpotComponent from "@components/JackpotComponent";
 import config from "@config/index";
 import lotteryJSON from "../../babies/abis/Lottery.json";
+import ClaimConfirmComponent from "@components/CollectPrizesComponent/ClaimConfirmComponent";
 
 function WonCheckComponent(props: any) {
   const { chainId, account } = useEthers();
@@ -37,6 +38,9 @@ function WonCheckComponent(props: any) {
   const [lotteryTicketLength, setTotalTicketsLength] = useState(0);
   const [lotteryNumber, setLotteryNumbers] = useState([]);
   const [winnerCount, setWinnerCount] = useState(0);
+  const [countForBracket, setCountForBracket] = useState([]);
+  const [ticketIdsForClaim, setTicketIdsForClaim] = useState([]);
+  const [boolTicketIdsForClaim, setBoolTicketIdsForClaim] = useState([]);
 
   const { isOpen, onOpen, onClose } = useDisclosure();
 
@@ -98,6 +102,8 @@ function WonCheckComponent(props: any) {
       num = num.toString().split("");
       let totalLotteryWinnerNumber = 0;
       let countArray: any = [];
+      let ticketIDs: any = [];
+      let boolForTicketIds: any = [];
       newArray.map((item: any, index: any) => {
         let count = 1;
         let bool = true;
@@ -109,6 +115,8 @@ function WonCheckComponent(props: any) {
             if (bool == true) {
               totalLotteryWinnerNumber++;
               bool = false;
+              ticketIDs.push(lotteryInfo[0][index]);
+              boolForTicketIds.push(lotteryInfo[2][index]);
             }
           }
         }
@@ -116,6 +124,9 @@ function WonCheckComponent(props: any) {
           countArray.push(count - 2);
         }
 
+        setTicketIdsForClaim(ticketIDs);
+        setCountForBracket(countArray);
+        setBoolTicketIdsForClaim(boolForTicketIds);
         setWinnerCount(totalLotteryWinnerNumber);
       });
     } catch (error) {
@@ -205,6 +216,24 @@ function WonCheckComponent(props: any) {
                     <span style={{ paddingLeft: 20 }}>🎁 Winning tickets:</span>
                     <span>{winnerCount}</span>
                   </Text>
+                  <ButtonContainer>
+                <button onClick={onOpen}>Collect Prizes</button>
+
+              <Modal isOpen={isOpen} size="sm" onClose={onClose}>
+                <ModalOverlay />
+                <ModalContent background={"none"}>
+                  <ModalBody>
+                    <ClaimConfirmComponent
+                      onClose={onClose}
+                      countForBracket={countForBracket}
+                      ticketIdsForClaim={ticketIdsForClaim}
+                      round={props.inputField}
+                      boolTicketIdsForClaim={boolTicketIdsForClaim}
+                    />
+                  </ModalBody>
+                </ModalContent>
+              </Modal>
+            </ButtonContainer>
                 </NumberContainer>
               </ColumnContainer>
             </MainContainer>

@@ -24,6 +24,7 @@ import styled from "styled-components";
 import Web3 from "web3";
 import { useEthers } from "@usedapp/core";
 import config from "@config/index";
+import TrophyImg from "../../assets/icons/general/64x64/icon_trophy_001_64x64.png";
 import tokenJSON from "../../babies/abis/BABYToken2.json";
 import lotteryJSON from "../../babies/abis/Lottery.json";
 import WonCheckComponent from "@components/WonCheckComponent";
@@ -98,8 +99,13 @@ const HistoryComponent = (props: any) => {
     }
   };
   const handlePlus = () => {
-    setInputField(Number(inputField) + 1);
-    handleLotery(Number(inputField) + 1);
+    if (Number(inputField) < 999) {
+      setInputField(Number(inputField) + 1);
+      handleLotery(Number(inputField) + 1);
+    } else {
+      setInputField(999);
+      handleLotery(999);
+    }
   };
   const handleLotteryOnChange = (e: any) => {
     if (e.target.value >= 0) {
@@ -244,6 +250,9 @@ const HistoryComponent = (props: any) => {
       console.log("error while getting Round");
     }
   };
+  const attachZero = (num: any) => {
+    return ("00" + num).slice(-3);
+  };
   useEffect(() => {
     GetRound();
   }, [account]);
@@ -287,19 +296,30 @@ const HistoryComponent = (props: any) => {
           </Flex>
           <Container style={{ background: "#F0B90B" }}>
             <h2>PRIZE POOL</h2>
-            <p
-              style={{
-                display: "flex",
-                cursor: "pointer",
-              }}
-              data-toggle="popover"
-              data-placement="top"
-              data-content="Vivamus sagittis lacus vel augue laoreet rutrum faucibus."
-              title={`${amount.toString()}`}
-            >
-              {amount.toFixed(4)}
-              {/* <br /> <span>- $ 123456.00</span> */}
-            </p>
+            <Image
+                src={TrophyImg.src}
+                className={grayscaleMode === "gray" ? "grayscale" : ""}
+                alt="babylonia logo"
+                w="32px"
+                h="32px"
+              />
+            <Box display={`flex`} alignItems="center">
+              <p
+                style={{
+                  display: "flex",
+                  cursor: "pointer",
+                  marginRight: 5
+                }}
+                data-toggle="popover"
+                data-placement="top"
+                data-content="Vivamus sagittis lacus vel augue laoreet rutrum faucibus."
+                title={`${amount.toString()}`}
+              >
+                {amount.toFixed(2)}
+                {/* <br /> <span>- $ 123456.00</span> */}
+              </p>
+              <h2>BABY</h2>
+            </Box>
           </Container>
           <Container style={{ background: "#B49EF2" }}>
             <h2>ROUND</h2>
@@ -319,13 +339,15 @@ const HistoryComponent = (props: any) => {
                 width: "50px",
                 backgroundColor: "#fff",
                 borderRadius: "5px",
-                padding: "5px 5px",
+                padding: "0px 4px",
+                fontSize: 26,
+                fontWeight: "600",
               }}
               onChange={(e) => {
                 handleLotteryOnChange(e);
               }}
-              maxLength={4}
-              value={inputField}
+              maxLength={3}
+              value={attachZero(inputField)}
             />
             {/* </p> */}
             <h4
