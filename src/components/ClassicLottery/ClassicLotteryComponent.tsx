@@ -20,6 +20,7 @@ import {
   ModalBody,
 } from "@chakra-ui/react";
 import Babylonia_Logo from "../../assets/Babylonia_Logo.png";
+import TrophyImg from "../../assets/icons/general/64x64/icon_trophy_001_64x64.png";
 import { useAppSelector } from "@hooks";
 import { useRouter } from "next/router";
 import styled from "styled-components";
@@ -124,7 +125,7 @@ const ClassicLotteryComponent = (props: any) => {
   // Random component
   const Completionist = () => (
     <p>
-      {"00"}h:{"00"}m
+      {"00"}h : {"00"}m
     </p>
   );
 
@@ -137,7 +138,7 @@ const ClassicLotteryComponent = (props: any) => {
       // Render a countdown
       return (
         <p>
-          {hours}h:{minutes}m
+          {hours < 10 ? "0" + hours : hours}h : {minutes < 10 ? "0" + minutes : minutes}m
         </p>
       );
     }
@@ -239,31 +240,37 @@ const ClassicLotteryComponent = (props: any) => {
           </Text>
           <Container style={{ background: "#F0B90B" }}>
             <h2>PRIZE POOL</h2>
-            <p
-              style={{
-                display: "flex",
-                cursor: "pointer",
-                // overflow: "auto",
-                // width: "200px",
-              }}
-              // data-bs-toggle="tooltip"
-              // data-bs-placement="top"
-              data-toggle="popover"
-              data-placement="top"
-              data-content="Vivamus sagittis lacus vel augue laoreet rutrum faucibus."
-              title={amount.toString()}
-            >
-              {amount.toFixed(4)}
-              {/* <br /> <span>- $ 123456.00</span> */}
-            </p>
+            <Image
+              src={TrophyImg.src}
+              className={grayscaleMode === "gray" ? "grayscale" : ""}
+              alt="babylonia logo"
+              w="32px"
+              h="32px"
+            />
+            <Box display={`flex`} alignItems="center">
+              <p
+                style={{
+                  display: "flex",
+                  cursor: "pointer",
+                  marginRight: 5
+                }}
+                data-toggle="popover"
+                data-placement="top"
+                data-content="Vivamus sagittis lacus vel augue laoreet rutrum faucibus."
+                title={`${amount.toString()}`}
+              >
+                {amount.toFixed(2)}
+                {/* <br /> <span>- $ 123456.00</span> */}
+              </p>
+              <h2>BABY</h2>
+            </Box>
           </Container>
           <Container style={{ background: "#B49EF2" }}>
             <h2>NEXT DRAW</h2>
-            {/* <p>00h 00m</p> */}
-            <Countdown
+            {lotteryEndTime !== 0 ? <Countdown
               date={Date.now() + 60000 * lotteryEndTime}
               renderer={renderer}
-            />
+            /> : <p>00h : 00m</p>}
           </Container>
           <Container style={{ background: "#37A93B" }}>
             <h2>LAST WINNER</h2>
