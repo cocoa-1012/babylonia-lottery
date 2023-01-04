@@ -45,7 +45,7 @@ const JackpotComponent = (props: any) => {
   const { colorMode } = useColorMode();
   const [babyBalance, setBabyBalance] = useState("0");
   const [percent, setPercent] = useState(0);
-  const [valueInput, setInputValue] = useState(10);
+  const [valueInput, setInputValue] = useState(1);
   const [costValue, setCostValue] = useState(0);
   const [actualCost, setActualCost] = useState("0");
   const [Id, setId] = useState(chainId);
@@ -62,28 +62,57 @@ const JackpotComponent = (props: any) => {
     (state: any) => state.wallet.selectedWallet
   );
 
-  const increaseNumber = () => {
-    if (valueInput < 100) {
-      setInputValue(valueInput + 1);
-    }
-  };
-  const decreaseNumber = () => {
-    if (valueInput > 1) {
-      setInputValue(valueInput - 1);
-    }
-  };
+  // const increaseNumber = () => {
+  //   console.log("valueInput", valueInput, valueInput + 1);
+
+  //   if (valueInput < 100) {
+  //     setInputValue(valueInput + 1);
+  //   } else {
+  //     toast.info("Maximum ticket limit is 100");
+  //   }
+  // };
+  // const decreaseNumber = () => {
+  //   if (valueInput > 1) {
+  //     setInputValue(valueInput - 1);
+  //   }
+  // };
   const maxNumber = (value: any) => {
     setInputValue(value);
   };
+  // const handleLotteryOnChange = (e: any) => {
+  //   if (e.target.value >= 0) {
+  //     setInputValue(e.target.value);
+  //     // getCost();
+  //   }
+  // };
 
+  const decreaseNumber = () => {
+    if (valueInput > 1) {
+      setInputValue(valueInput - 1);
+      getCost();
+    }
+  };
+  const increaseNumber = () => {
+    if (valueInput <= 99) {
+      setInputValue(valueInput + 1);
+      getCost();
+    }
+  };
+  const handleLotteryOnChange = (e: any) => {
+    if (e.target.value >= 0 && e.target.value <= 99) {
+      setInputValue(e.target.value);
+      getCost();
+    } else {
+      setInputValue(0);
+      getCost();
+    }
+  };
   const getBabyAddress = () => {
     if (Id === 80001) {
       return config.contractAddress.babyToken[80001];
     } else if (Id === 137) {
       return config.contractAddress.babyToken[137];
-      
-    }
-    else if (Id === 97) {
+    } else if (Id === 97) {
       return config.contractAddress.babyToken[97];
     }
   };
@@ -92,12 +121,9 @@ const JackpotComponent = (props: any) => {
       return config.contractAddress.lottery[80001];
     } else if (Id === 137) {
       return config.contractAddress.lottery[137];
-    }
-
-    else if (Id === 97) {
+    } else if (Id === 97) {
       return config.contractAddress.lottery[97];
     }
-
   };
   let web3 = new Web3();
   if (typeof window !== "undefined") {
@@ -130,14 +156,13 @@ const JackpotComponent = (props: any) => {
     return randomNumber;
   };
   const getBalance = async (address: string) => {
-    console.log("Babybalance Func:", address)
     try {
       const result = await tokenContract.contract.methods
         .balanceOf(address)
         .call();
       return web3.utils.toBN(result).toString();
     } catch (error) {
-      console.log("Babybal Erro:", error)
+      console.log("Babybal Error:", error);
     }
   };
   const getCost = async () => {
@@ -202,7 +227,6 @@ const JackpotComponent = (props: any) => {
     try {
       if (account) {
         const babybalance = await getBalance(account ? account : "");
-        console.log("Babybalance::>", babybalance)
         // const depositRate: any = await getDepositRate();
         let test: string = babybalance!;
         setBabyBalance(web3.utils.fromWei(test as string));
@@ -299,10 +323,8 @@ const JackpotComponent = (props: any) => {
         const result = await tokenContract.contract.methods
           .allowance(account, lotteryContract.address)
           .call();
-        console.log("allowance", result, parseFloat(result) != 0);
         if (parseFloat(result) != 0) {
           if (parseFloat(acutalCostForBuy) <= parseFloat(result)) {
-            console.log("into actual cost");
             setApproved(true);
           } else {
             toast.info("You Approved less Lottery Tickets!");
@@ -331,16 +353,15 @@ const JackpotComponent = (props: any) => {
           const id = await lotteryContract.contract.methods
             .viewCurrentLotteryId()
             .call();
-          console.log("viewCurrentLotteryId in buy", id);
           let array: any = [];
           for (let i = 1; i <= valueInput; i++) {
             let num = random();
             array = [...array, num];
           }
-          console.log("array and id", array, id);
-          const result = await lotteryContract.contract.methods
+          const gasPrice = await web3.eth.getGasPrice();
+          await lotteryContract.contract.methods
             .buyTickets(id, array)
-            .send({ from: account });
+            .send({ from: account, gasPrice });
           toast.success("Transaction Sucessful");
           setApproved(false);
         } else {
@@ -444,7 +465,26 @@ const JackpotComponent = (props: any) => {
                     className="button"
                     onClick={() => decreaseNumber()}
                   >{`-`}</p>
-                  <p className="number">{valueInput}</p>
+                  <input
+                    type="text"
+                    pattern="\d*"
+                    className="inputClassicRound"
+                    placeholder="0000"
+                    style={{
+                      width: "60px",
+                      backgroundColor: "#fff",
+                      borderRadius: "5px",
+                      padding: "0px 4px",
+                      fontSize: 26,
+                      fontWeight: "600",
+                    }}
+                    // onChange={(e) => {
+                    //   handleLotteryOnChange(e);
+                    // }}
+                    maxLength={3}
+                    value={valueInput}
+                  />
+                  {/* <p className="number">{valueInput}</p> */}
                   <p
                     className="button"
                     onClick={() => increaseNumber()}
@@ -476,45 +516,40 @@ const JackpotComponent = (props: any) => {
                   Total <span>{actualCost}</span> BABY + gas
                 </p>
               </ColumnContainer>
-              <ButtonContainer>
-                <button onClick={() => handleEnable()}>Approval</button>
-              </ButtonContainer>
-              <ButtonContainer>
-                <button
-                  onClick={() => {
-                    getBuyTicket();
-                  }}
-                >
-                  Buy Instantly
-                </button>
-              </ButtonContainer>
-              <ButtonContainer>
-                {console.log("approved", approved)}
+              {!approved && (
+                <ButtonContainer>
+                  <button onClick={() => handleEnable()}>Approval</button>
+                </ButtonContainer>
+              )}
+              {approved && (
+                <>
+                  <ButtonContainer>
+                    <button
+                      onClick={() => {
+                        getBuyTicket();
+                      }}
+                    >
+                      Buy Instantly
+                    </button>
+                  </ButtonContainer>
+                  <ButtonContainer>
+                    <button onClick={onOpen}>View/Edit Number</button>
+                  </ButtonContainer>
+                </>
+              )}
 
-                {approved ? (
-                  <button onClick={onOpen}>View/Edit Number</button>
-                ) : (
-                  <button
-                    onClick={() => {
-                      toast.info("Please Approve First");
-                    }}
-                  >
-                    View/Edit Number
-                  </button>
-                )}
-                <Modal isOpen={isOpen} size="sm" onClose={onClose}>
-                  <ModalOverlay />
-                  <ModalContent background={"none"}>
-                    <ModalBody>
-                      <BuyPointOne
-                        onClose={onClose}
-                        eidtLotteryNumber={eidtLotteryNumber}
-                        setEidtLotteryNumber={setEidtLotteryNumber}
-                      />
-                    </ModalBody>
-                  </ModalContent>
-                </Modal>
-              </ButtonContainer>
+              <Modal isOpen={isOpen} size="sm" onClose={onClose}>
+                <ModalOverlay />
+                <ModalContent background={"none"}>
+                  <ModalBody>
+                    <BuyPointOne
+                      onClose={onClose}
+                      eidtLotteryNumber={eidtLotteryNumber}
+                      setEidtLotteryNumber={setEidtLotteryNumber}
+                    />
+                  </ModalBody>
+                </ModalContent>
+              </Modal>
             </MainContainer>
           </Box>
         </Box>

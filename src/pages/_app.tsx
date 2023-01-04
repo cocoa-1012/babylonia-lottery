@@ -78,7 +78,7 @@ function MyApp({ Component, pageProps }: AppProps) {
                   defer
                 ></script>
               </>
-              <title> Pool | Babylonia.app </title>
+              <title> WIN | Babylonia.app </title>
               <link rel="shortcut icon" href="/BABY.png" />
               <meta httpEquiv="content-language" content="en-us" />
               <meta charSet="utf-8" />

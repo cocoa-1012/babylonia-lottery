@@ -179,6 +179,7 @@ const HistoryComponent = (props: any) => {
         const values = await lotteryContract.contract.methods
           .viewLottery(id)
           .call();
+
         if (values.status == 1) {
           setInputField(id);
           handleLotery(id);
@@ -297,18 +298,18 @@ const HistoryComponent = (props: any) => {
           <Container style={{ background: "#F0B90B" }}>
             <h2>PRIZE POOL</h2>
             <Image
-                src={TrophyImg.src}
-                className={grayscaleMode === "gray" ? "grayscale" : ""}
-                alt="babylonia logo"
-                w="32px"
-                h="32px"
-              />
+              src={TrophyImg.src}
+              className={grayscaleMode === "gray" ? "grayscale" : ""}
+              alt="babylonia logo"
+              w="32px"
+              h="32px"
+            />
             <Box display={`flex`} alignItems="center">
               <p
                 style={{
                   display: "flex",
                   cursor: "pointer",
-                  marginRight: 5
+                  marginRight: 5,
                 }}
                 data-toggle="popover"
                 data-placement="top"
@@ -336,7 +337,7 @@ const HistoryComponent = (props: any) => {
               className="inputClassicRound"
               placeholder="0000"
               style={{
-                width: "50px",
+                width: "60px",
                 backgroundColor: "#fff",
                 borderRadius: "5px",
                 padding: "0px 4px",
